@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{% static 'paugapp/jquery.contextMenu.min.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.css">
+    <link rel="stylesheet" href="{% static 'paugapp/style.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="{% static 'paugapp/jquery.ui.position.min.js' %}"></script>
+    <script src="{% static 'paugapp/jquery.contextMenu.min.js' %}"></script>
+    <script src='https://cdn.jsdelivr.net/npm/moment@2.27.0/min/moment.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/moment@5.9.0/main.global.min.js'></script>
+    <script src="{% static 'paugapp/main.js' %}"></script>
+</head>
+<body>
+<div id='sidebar'>
+
+    <div>
+        <p>
+            <button id="inbox-toggle">Show</button>
+            <strong>Inbox</strong>
+        </p>
+        <iframe id="inbox-iframe" class="airtable-embed"
+                src="https://airtable.com/embed/shrAkBXIQMp3Au4NM?backgroundColor=purple"
+                frameborder="0" onmousewheel="" width="100%" height="333"
+                style="background: transparent; border: 1px solid #ccc; display:none;">
+        </iframe>
+    </div>
+
+    <div>
+        <p>
+            <button id="estimate-toggle">Show</button>
+            <a href="https://airtable.com/appnwwKyjVdpLbRUh/tblgamWwZKzFpL51c/viwPEuh6GDXypoSvM?blocks=hide"
+               target="_blank" rel="noopener noreferrer">
+                <strong>To Estimate</strong>
+            </a>
+        </p>
+    </div>
+
+    <div>
+        <p>
+            <button id="schedule-toggle">Show</button>
+            <strong>To Schedule</strong>
+        </p>
+        <div id='external-events' style="display:none;">
+            <p>
+                <strong>Draggable Events</strong>
+                <select id="draggable-category"></select>
+            </p>
+        </div>
+    </div>
+
+
+
+
+</div>
+
+<div id='calendar-container'>
+    <div id='calendar'></div>
+</div>
+</body>
+</html>
