@@ -123,8 +123,8 @@ STATIC_URL = '/static/'
 
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'paug', 'paugapp', 'static'),
-    os.path.join(BASE_DIR, 'paugapp', 'static')
+    os.path.join(BASE_DIR, 'paug/paugapp/static'),
+    os.path.join(BASE_DIR, 'paugapp/static')
 )
 
 # Default primary key field type
