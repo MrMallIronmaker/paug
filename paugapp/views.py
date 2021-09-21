@@ -82,7 +82,10 @@ def block(request):
     # if it's a post:
     if request.method == "POST":
         # parse the request.body
-        event_dict = parse_event_json(dict(json.loads(request.body)))
+        event_dict = parse_event_json(
+            dict(json.loads(request.body)),
+            Category.objects.filter(owner=request.user.paugprofile)
+        )
         print(event_dict)
         b = Block(owner=request.user.paugprofile, **event_dict)
         b.save()
@@ -94,7 +97,10 @@ def block(request):
         # 404 if not found!!
         # gotta update something.
         update_json = json.loads(request.body)
-        event_dict = parse_event_json(dict(update_json["fields"]))
+        event_dict = parse_event_json(
+            dict(update_json["fields"]),
+            Category.objects.filter(owner=request.user.paugprofile)
+        )
         b = Block.objects.get(pk=update_json['pk'])
         if b.owner == request.user.paugprofile:
             for prop in event_dict:
