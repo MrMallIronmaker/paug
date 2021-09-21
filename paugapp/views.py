@@ -125,5 +125,14 @@ def block(request):
 
 
 @login_required
+def category(request):
+    if request.method == "GET":
+        qs = Category.objects.filter(owner=request.user.paugprofile)
+        data = serialize("json", qs, fields=('name', 'html_color'))
+        return HttpResponse(data, content_type="application/json")
+    return HttpResponseNotAllowed(['GET'])
+
+
+@login_required
 def index(request):
     return render(request, "paugapp/index.html")

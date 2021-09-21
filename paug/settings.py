@@ -24,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = 'DEPLOYMENT' in os.environ and os.environ['DEPLOYMENT'] == 'DEV'
 
 ALLOWED_HOSTS = ["paug.herokuapp.com"]
 

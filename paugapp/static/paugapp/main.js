@@ -3,7 +3,18 @@
 
 var calendar;
 
-var entryCategories = ["Work", "Byyytes", "Home", "Breaks"];
+var entryCategories;
+
+$.ajax({dataType: "json", url: "/category/", async: false, success: function(data, textStatus, jqXHR) {
+    entryCategories = data.map(function(cat) {return({"id": cat.pk, "name": cat.fields.name, "color": cat.fields.html_color})});
+}});
+
+function getCategory(id) {
+    return entryCategories.filter(x => x.id === id)[0];
+}
+
+console.log(entryCategories);
+
 var entryTypes = ["Event", "Task", "Record"];
 
 var sumDurations = function(arr) {
@@ -61,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var draggableCategory = $("#draggable-category");
     draggableCategory[0].add(new Option("All"));
     entryCategories.forEach(function(category) {
-        draggableCategory[0].add(new Option(category));
+        draggableCategory[0].add(new Option(category.name));
     });
 
     draggableCategory.change(function() {
@@ -133,30 +144,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // color computation
     var computeColor = function(eventSpec) {
-
-        var eventBackgroundColor;
-
-        // error: #E22A0B
-        // life: #4C9C46
-        // work: #4877A7
-        // text: #F4EDB8
-        switch (eventSpec.extendedProps.category) {
-            case 1:
-                eventBackgroundColor = "#4C9C46";
-                break;
-            case 2:
-                eventBackgroundColor = "#4877A7";
-                break;
-            case 3:
-                eventBackgroundColor = "#c39357";
-                break;
-            case 4:
-                eventBackgroundColor = "#9670b9";
-                break;
-            default:
-                eventBackgroundColor = "#777777";
+        if (eventSpec.extendedProps.category) {
+            return eventSpec.extendedProps.category.color;
         }
-        return eventBackgroundColor;
+        else {
+            return "#777777";
+        }
     }
 
     // initialize the context menu
@@ -195,11 +188,12 @@ document.addEventListener('DOMContentLoaded', function () {
             category: {
                 name: "Category",
                 items: entryCategories.reduce((a, cat) => Object.assign(a, {
-                    [cat]: {
-                        name: cat,
+                    [cat.name]: {
+                        name: cat.name,
                         callback: function (key, opt, rootMenu, originalEvent) {
                             var event = eventFromOpt(opt);
-                            event.setExtendedProp("category", key);
+                            event.setExtendedProp("category", cat);
+                            console.log(cat.name + " " + computeColor(event));
                             event.setProp("color", computeColor(event));
                         }
                     }
@@ -326,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 "name": event.title,
                 "start": moment(event.start).format("YYYY-MM-DD H:mm:ss ZZ"),
                 "end": moment(event.end).format("YYYY-MM-DD H:mm:ss ZZ"),
-                "category": event.extendedProps.category,
+                "category": event.extendedProps.category.id,
                 "completed": event.extendedProps.completed,
                 "entry_type": event.extendedProps.entryType
             }
@@ -447,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     end: record.fields.end,
                                     id: record.pk,
                                     extendedProps: {
-                                        category: record.fields.category,
+                                        category: getCategory(record.fields.category),
                                         entryType: record.fields.autocomplete ? "Event" : "Task",
                                         completed: record.fields.completed,
                                         piece: "block"
@@ -654,9 +648,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 var elementDateEnd = moment(elementDate).add(1, 'day');
                 var maxWorkHours = 7;
                 var workEntries = events.filter(ev => (
-                        moment(ev.start) >= elementDate &
-                            moment(ev.end) <= elementDateEnd &
-                            ev.extendedProps.category === "Work"
+                        moment(ev.start) >= elementDate &&
+                            moment(ev.end) <= elementDateEnd &&
+                            ev.extendedProps.category &&
+                            ev.extendedProps.category.name === "Work"
                 ));
 
                 var workEventHours = sumDurations(
