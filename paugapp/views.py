@@ -16,7 +16,10 @@ def parse_event_json(event_dict, categories):
         event_dict['completed'] = False
 
     if 'category' in event_dict and event_dict['category']:
-        event_dict['category'] = categories.get(name=event_dict['category'])
+        if type(event_dict['category']) == str:
+            event_dict['category'] = categories.get(name=event_dict['category'])
+        else:
+            event_dict['category'] = categories.get(pk=event_dict['category'])
 
     if event_dict['entry_type'] in ['Event', 'Record']:
         event_dict['timelocked'] = True
