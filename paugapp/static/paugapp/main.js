@@ -432,7 +432,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 function (info, successCallback, failureCallback) {
                     // TODO: handle failure
 
-                    $.getJSON("/block/", function(data, textStatus, jqXHR) {
+                    $.getJSON("/block/", {
+                        start: moment(info.start).format("YYYY-MM-DD H:mm:ss ZZ"),
+                        end: moment(info.end).format("YYYY-MM-DD H:mm:ss ZZ")
+                    }, function(data, textStatus, jqXHR) {
                         successCallback(
                             data.map(function(record) {
                                 var spec = {

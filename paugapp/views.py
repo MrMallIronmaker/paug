@@ -78,9 +78,23 @@ def block(request):
     # TODO: filter by date / time
     # if it's a get,
     if request.method == "GET":
-        qs = Block.objects.filter(owner=request.user.paugprofile).exclude(start__isnull=True)
+        if 'start' in request.GET:
+            start_time = datetime.strptime("%Y-%m-%d %H:%M:%S %z", request.GET['start'])
+            end_time = datetime.strptime("%Y-%m-%d %H:%M:%S %z", request.GET['start'])
+            qs = Block.objects.filter(owner=request.user.paugprofile, end__gt=start_time, start__lt=end_time).exclude(start__isnull=True)
+
+        elif 'to' in request.GET:
+            if request.GET['to'] == 'estimate':
+                qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True, duration__isnull=True)
+            elif request.GET['to'] == 'schedule':
+                qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True, duration__isnull=False)
+
+        else:
+            raise ValueError("Improper GET arguments.")
+
         data = serialize("json", qs, fields=('name', 'start', 'end', 'category', 'autocomplete', 'completed'))
         return HttpResponse(data, content_type="application/json")
+
     # return the right values filtered correctly.
     # if it's a post:
     if request.method == "POST":
