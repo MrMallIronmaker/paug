@@ -87,41 +87,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     })
 
-    /* containerEl, {
-        itemSelector: '.fc-event'*/
-
-
-    // This loads all the HTML items.
-    // get the view "to schedule", return block with properties category, duration, id, entrytype.
-
-    /*
-    base('Block').select({
-        view: 'To Schedule'
-    }).firstPage(
-        // TODO: sometime, there will be too many records.
-        function (err, records) {
-            if (err) {
-                console.error(err);
-            } else {
-                records.forEach(function (record) {
-                    var srcHtml = "<div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>\n" +
-                        "        <div class='fc-event-main'>" + record.get("Name") + "</div>\n" +
-                        "    </div>"
-                    var entry = $(srcHtml);
-                    entry.css(
-                        "background-color",
-                        computeColor({extendedProps: {category: record.get("Category")}})
-                    );
-                    entry.data({
-                        duration: record.get("Duration"),
-                        id: record.getId(),
-                        category: record.get("Category"),
-                        entryType: record.get("EntryType")
-                    });
-                    $("#external-events").append(entry);
+    $.getJSON(
+        "/block/",
+        {to: "schedule"},
+        function(data, textStatus, jqXHR) {
+            data.forEach(function (record) {
+                var srcHtml = "<div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>\n" +
+                    "        <div class='fc-event-main'>" + record.fields.name + "</div>\n" +
+                    "    </div>"
+                var entry = $(srcHtml);
+                entry.css(
+                    "background-color",
+                    computeColor({extendedProps: {category: getCategory(record.fields.category)}})
+                );
+                entry.data({
+                    duration: record.fields.duration,
+                    id: record.pk,
+                    category: getCategory(record.fields.category),
+                    entryType: record.fields.autocomplete ? "Event" : "Task",
                 });
-            }
-        });*/
+                $("#external-events").append(entry);
+            });
+        }
+    );
 
 
     $("#inbox-toggle").click(showHideCallback('inbox-iframe'));
@@ -314,36 +302,23 @@ document.addEventListener('DOMContentLoaded', function () {
         xhr.onerror = function (e) {
           console.error(xhr.statusText);
         };
-        xhr.send(JSON.stringify({
+
+        var event_spec = {
             "pk": event.id,
             "fields": {
                 "name": event.title,
-                "start": moment(event.start).format("YYYY-MM-DD H:mm:ss ZZ"),
-                "end": moment(event.end).format("YYYY-MM-DD H:mm:ss ZZ"),
                 "category": event.extendedProps.category.id,
                 "completed": event.extendedProps.completed,
                 "entry_type": event.extendedProps.entryType
             }
-        }));
+        };
 
-        /*
-        base('Block').update([
-            {
-                "id": info.event.id,
-                "fields": {
-                    "Name": event.title,
-                    "Start": event.start,
-                    "End": event.end,
-                    "Category": event.extendedProps.category,
-                    "Completed": event.extendedProps.completed,
-                    "EntryType": event.extendedProps.entryType
-                }
-            }
-        ], function(err, records) {
-            if (err) {
-                console.error(err);
-            }
-        });*/
+        if (event.start !== null) {
+            event_spec.fields["start"] = moment(event.start).format("YYYY-MM-DD H:mm:ss ZZ");
+            event_spec.fields["end"] = moment(event.end).format("YYYY-MM-DD H:mm:ss ZZ");
+        }
+
+        xhr.send(JSON.stringify(event_spec));
 
     };
 
@@ -433,8 +408,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     // TODO: handle failure
 
                     $.getJSON("/block/", {
-                        start: moment(info.start).format("YYYY-MM-DD H:mm:ss ZZ"),
-                        end: moment(info.end).format("YYYY-MM-DD H:mm:ss ZZ")
+                        start: moment(info.start).format("YYYY-MM-DD HH:mm:ss ZZ"),
+                        end: moment(info.end).format("YYYY-MM-DD HH:mm:ss ZZ")
                     }, function(data, textStatus, jqXHR) {
                         successCallback(
                             data.map(function(record) {

@@ -79,9 +79,9 @@ def block(request):
     # if it's a get,
     if request.method == "GET":
         if 'start' in request.GET:
-            start_time = datetime.strptime("%Y-%m-%d %H:%M:%S %z", request.GET['start'])
-            end_time = datetime.strptime("%Y-%m-%d %H:%M:%S %z", request.GET['start'])
-            qs = Block.objects.filter(owner=request.user.paugprofile, end__gt=start_time, start__lt=end_time).exclude(start__isnull=True)
+            start_time = datetime.strptime(request.GET['start'], "%Y-%m-%d %H:%M:%S %z")
+            end_time = datetime.strptime(request.GET['end'], "%Y-%m-%d %H:%M:%S %z")
+            qs = Block.objects.filter(owner=request.user.paugprofile, start__lt=end_time, end__gt=start_time).exclude(start__isnull=True)
 
         elif 'to' in request.GET:
             if request.GET['to'] == 'estimate':
@@ -92,7 +92,7 @@ def block(request):
         else:
             raise ValueError("Improper GET arguments.")
 
-        data = serialize("json", qs, fields=('name', 'start', 'end', 'category', 'autocomplete', 'completed'))
+        data = serialize("json", qs, fields=('name', 'start', 'end', 'category', 'autocomplete', 'completed', 'duration'))
         return HttpResponse(data, content_type="application/json")
 
     # return the right values filtered correctly.
