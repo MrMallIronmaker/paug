@@ -306,10 +306,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 "entry_type": event.extendedProps.entryType
             }
         };
-
         if (event.start !== null) {
             event_spec.fields["start"] = moment(event.start).format("YYYY-MM-DD H:mm:ss ZZ");
             event_spec.fields["end"] = moment(event.end).format("YYYY-MM-DD H:mm:ss ZZ");
+        } else {
+            event_spec.fields["start"] = null;
+            event_spec.fields["end"] = null;
         }
 
         xhr.send(JSON.stringify(event_spec));
@@ -502,22 +504,38 @@ document.addEventListener('DOMContentLoaded', function () {
         eventRemove: function(removeInfo) {
             var event = removeInfo.event;
             if (removeInfo.event.unschedule) {
-                /*
-                base('Block').update([
-                    {
-                        "id": event.id,
-                        "fields": {
-                            "Start": null,
-                            "End": null
-                        }
-                    }
-                ], function (err, records) {
-                    if (err) {
-                        console.error(err);
-                    }
-                });
 
-                 */
+                var xhr = new XMLHttpRequest();
+                xhr.open("PUT", "/block/", true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('X-CSRFToken', csrftoken);
+                xhr.onload = function (e) {
+                  if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                      console.log(xhr.responseText);
+                    } else {
+                      console.error(xhr.statusText);
+                    }
+                  }
+                };
+                xhr.onerror = function (e) {
+                  console.error(xhr.statusText);
+                };
+
+                var event_spec = {
+                    "pk": event.id,
+                    "fields": {
+                        "name": event.title,
+                        "category": event.extendedProps.category.id,
+                        "completed": event.extendedProps.completed,
+                        "entry_type": event.extendedProps.entryType,
+                        // TODO: auto-calculate duration when unscheduled.
+                        "start": null,
+                        "end": null
+                    }
+                };
+
+                xhr.send(JSON.stringify(event_spec));
             } else {
                 var xhr = new XMLHttpRequest();
                 xhr.open("DELETE", "/block/", true);
