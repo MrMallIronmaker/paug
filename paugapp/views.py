@@ -51,11 +51,9 @@ def parse_event_json(event_dict, categories):
 def bulk_upload(request):
     if request.method == "POST":
         upload = request.FILES['filename']
-        print(upload)
         dr = csv.DictReader(io.TextIOWrapper(upload, encoding="ascii"))
         timezone = pytz.timezone("US/Pacific")
         owner = request.user.paugprofile
-        print(owner)
         categories = Category.objects.filter(owner=request.user.paugprofile)
         for row_orig in dr:
             event_dict = parse_event_json(dict(row_orig), categories)
@@ -74,7 +72,6 @@ def bulk_upload(request):
 
 @login_required
 def block(request):
-    print(request.user.is_authenticated)
     # TODO: filter by date / time
     # if it's a get,
     if request.method == "GET":
@@ -103,7 +100,6 @@ def block(request):
             dict(json.loads(request.body)),
             Category.objects.filter(owner=request.user.paugprofile)
         )
-        print(event_dict)
         b = Block(owner=request.user.paugprofile, **event_dict)
         b.save()
         data = serialize("json", [b], fields=('name', 'start', 'end', 'category', 'autocomplete', 'completed'))

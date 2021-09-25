@@ -13,8 +13,6 @@ function getCategory(id) {
     return entryCategories.filter(x => x.id === id)[0];
 }
 
-console.log(entryCategories);
-
 var entryTypes = ["Event", "Task", "Record"];
 
 var sumDurations = function(arr) {
@@ -181,7 +179,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         callback: function (key, opt, rootMenu, originalEvent) {
                             var event = eventFromOpt(opt);
                             event.setExtendedProp("category", cat);
-                            console.log(cat.name + " " + computeColor(event));
                             event.setProp("color", computeColor(event));
                         }
                     }
@@ -234,9 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     Object.assign(newExtendedProps, event.extendedProps);
 
                     // shorten old event
-                    console.log(event);
                     event.setEnd(childSplitPoint);
-                    console.log(event);
 
                     // create new event.
                     var lateChildEvent = calendar.addEvent({
@@ -283,7 +278,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // -----------------------------------------------------------------
 
     var updateAirtable = function (info) {
-        console.log("Updating Django")
         var event = info.event;
 
         var xhr = new XMLHttpRequest();
