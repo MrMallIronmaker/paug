@@ -81,10 +81,13 @@ def block(request):
             qs = Block.objects.filter(owner=request.user.paugprofile, start__lt=end_time, end__gt=start_time).exclude(start__isnull=True)
 
         elif 'to' in request.GET:
-            if request.GET['to'] == 'estimate':
-                qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True, duration__isnull=True)
-            elif request.GET['to'] == 'schedule':
-                qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True, duration__isnull=False)
+            # if request.GET['to'] == 'estimate':
+            #     qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True, duration__isnull=True)
+            if request.GET['to'] == 'schedule':
+                # qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True, duration__isnull=False)
+                qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True)
+            else:
+                raise ValueError("Improper GET arguments.")
 
         else:
             raise ValueError("Improper GET arguments.")

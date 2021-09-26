@@ -21,6 +21,14 @@ function safeCategoryId(category) {
     }
 }
 
+function safeDuration(duration) {
+    if (duration) {
+        return duration;
+    } else {
+        return 15; // 15 minutes
+    }
+}
+
 var entryTypes = ["Event", "Task", "Record"];
 
 var sumDurations = function(arr) {
@@ -107,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     computeColor({extendedProps: {category: getCategory(record.fields.category)}})
                 );
                 entry.data({
-                    duration: record.fields.duration,
+                    duration: safeDuration(record.fields.duration),
                     id: record.pk,
                     category: getCategory(record.fields.category),
                     entryType: record.fields.autocomplete ? "Event" : "Task",
