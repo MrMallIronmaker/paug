@@ -13,7 +13,21 @@ function getCategory(id) {
     return entryCategories.filter(x => x.id === id)[0];
 }
 
-console.log(entryCategories);
+function safeCategoryId(category) {
+    if (category) {
+        return category.id;
+    } else {
+        return null;
+    }
+}
+
+function safeDuration(duration) {
+    if (duration) {
+        return duration;
+    } else {
+        return 15; // 15 minutes
+    }
+}
 
 var entryTypes = ["Event", "Task", "Record"];
 
@@ -87,41 +101,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     })
 
-    /* containerEl, {
-        itemSelector: '.fc-event'*/
-
-
-    // This loads all the HTML items.
-    // get the view "to schedule", return block with properties category, duration, id, entrytype.
-
-    /*
-    base('Block').select({
-        view: 'To Schedule'
-    }).firstPage(
-        // TODO: sometime, there will be too many records.
-        function (err, records) {
-            if (err) {
-                console.error(err);
-            } else {
-                records.forEach(function (record) {
-                    var srcHtml = "<div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>\n" +
-                        "        <div class='fc-event-main'>" + record.get("Name") + "</div>\n" +
-                        "    </div>"
-                    var entry = $(srcHtml);
-                    entry.css(
-                        "background-color",
-                        computeColor({extendedProps: {category: record.get("Category")}})
-                    );
-                    entry.data({
-                        duration: record.get("Duration"),
-                        id: record.getId(),
-                        category: record.get("Category"),
-                        entryType: record.get("EntryType")
-                    });
-                    $("#external-events").append(entry);
+    $.getJSON(
+        "/block/",
+        {to: "schedule"},
+        function(data, textStatus, jqXHR) {
+            data.forEach(function (record) {
+                var srcHtml = "<div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>\n" +
+                    "        <div class='fc-event-main'>" + record.fields.name + "</div>\n" +
+                    "    </div>"
+                var entry = $(srcHtml);
+                entry.css(
+                    "background-color",
+                    computeColor({extendedProps: {category: getCategory(record.fields.category)}})
+                );
+                entry.data({
+                    duration: safeDuration(record.fields.duration),
+                    id: record.pk,
+                    category: getCategory(record.fields.category),
+                    entryType: record.fields.autocomplete ? "Event" : "Task",
                 });
-            }
-        });*/
+                $("#external-events").append(entry);
+            });
+        }
+    );
 
 
     $("#inbox-toggle").click(showHideCallback('inbox-iframe'));
@@ -193,7 +195,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         callback: function (key, opt, rootMenu, originalEvent) {
                             var event = eventFromOpt(opt);
                             event.setExtendedProp("category", cat);
-                            console.log(cat.name + " " + computeColor(event));
                             event.setProp("color", computeColor(event));
                         }
                     }
@@ -246,9 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     Object.assign(newExtendedProps, event.extendedProps);
 
                     // shorten old event
-                    console.log(event);
                     event.setEnd(childSplitPoint);
-                    console.log(event);
 
                     // create new event.
                     var lateChildEvent = calendar.addEvent({
@@ -295,7 +294,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // -----------------------------------------------------------------
 
     var updateAirtable = function (info) {
-        console.log("Updating Django")
         var event = info.event;
 
         var xhr = new XMLHttpRequest();
@@ -314,36 +312,25 @@ document.addEventListener('DOMContentLoaded', function () {
         xhr.onerror = function (e) {
           console.error(xhr.statusText);
         };
-        xhr.send(JSON.stringify({
+
+        var event_spec = {
             "pk": event.id,
             "fields": {
                 "name": event.title,
-                "start": moment(event.start).format("YYYY-MM-DD H:mm:ss ZZ"),
-                "end": moment(event.end).format("YYYY-MM-DD H:mm:ss ZZ"),
-                "category": event.extendedProps.category.id,
+                "category": safeCategoryId(event.extendedProps.category),
                 "completed": event.extendedProps.completed,
                 "entry_type": event.extendedProps.entryType
             }
-        }));
+        };
+        if (event.start !== null) {
+            event_spec.fields["start"] = moment(event.start).format("YYYY-MM-DD H:mm:ss ZZ");
+            event_spec.fields["end"] = moment(event.end).format("YYYY-MM-DD H:mm:ss ZZ");
+        } else {
+            event_spec.fields["start"] = null;
+            event_spec.fields["end"] = null;
+        }
 
-        /*
-        base('Block').update([
-            {
-                "id": info.event.id,
-                "fields": {
-                    "Name": event.title,
-                    "Start": event.start,
-                    "End": event.end,
-                    "Category": event.extendedProps.category,
-                    "Completed": event.extendedProps.completed,
-                    "EntryType": event.extendedProps.entryType
-                }
-            }
-        ], function(err, records) {
-            if (err) {
-                console.error(err);
-            }
-        });*/
+        xhr.send(JSON.stringify(event_spec));
 
     };
 
@@ -432,7 +419,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 function (info, successCallback, failureCallback) {
                     // TODO: handle failure
 
-                    $.getJSON("/block/", function(data, textStatus, jqXHR) {
+                    $.getJSON("/block/", {
+                        start: moment(info.start).format("YYYY-MM-DD HH:mm:ss ZZ"),
+                        end: moment(info.end).format("YYYY-MM-DD HH:mm:ss ZZ")
+                    }, function(data, textStatus, jqXHR) {
                         successCallback(
                             data.map(function(record) {
                                 var spec = {
@@ -530,22 +520,38 @@ document.addEventListener('DOMContentLoaded', function () {
         eventRemove: function(removeInfo) {
             var event = removeInfo.event;
             if (removeInfo.event.unschedule) {
-                /*
-                base('Block').update([
-                    {
-                        "id": event.id,
-                        "fields": {
-                            "Start": null,
-                            "End": null
-                        }
-                    }
-                ], function (err, records) {
-                    if (err) {
-                        console.error(err);
-                    }
-                });
 
-                 */
+                var xhr = new XMLHttpRequest();
+                xhr.open("PUT", "/block/", true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('X-CSRFToken', csrftoken);
+                xhr.onload = function (e) {
+                  if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                      console.log(xhr.responseText);
+                    } else {
+                      console.error(xhr.statusText);
+                    }
+                  }
+                };
+                xhr.onerror = function (e) {
+                  console.error(xhr.statusText);
+                };
+
+                var event_spec = {
+                    "pk": event.id,
+                    "fields": {
+                        "name": event.title,
+                        "category": safeCategoryId(event.extendedProps.category),
+                        "completed": event.extendedProps.completed,
+                        "entry_type": event.extendedProps.entryType,
+                        // TODO: auto-calculate duration when unscheduled.
+                        "start": null,
+                        "end": null
+                    }
+                };
+
+                xhr.send(JSON.stringify(event_spec));
             } else {
                 var xhr = new XMLHttpRequest();
                 xhr.open("DELETE", "/block/", true);

@@ -51,11 +51,9 @@ def parse_event_json(event_dict, categories):
 def bulk_upload(request):
     if request.method == "POST":
         upload = request.FILES['filename']
-        print(upload)
         dr = csv.DictReader(io.TextIOWrapper(upload, encoding="ascii"))
         timezone = pytz.timezone("US/Pacific")
         owner = request.user.paugprofile
-        print(owner)
         categories = Category.objects.filter(owner=request.user.paugprofile)
         for row_orig in dr:
             event_dict = parse_event_json(dict(row_orig), categories)
@@ -74,13 +72,29 @@ def bulk_upload(request):
 
 @login_required
 def block(request):
-    print(request.user.is_authenticated)
     # TODO: filter by date / time
     # if it's a get,
     if request.method == "GET":
-        qs = Block.objects.filter(owner=request.user.paugprofile).exclude(start__isnull=True)
-        data = serialize("json", qs, fields=('name', 'start', 'end', 'category', 'autocomplete', 'completed'))
+        if 'start' in request.GET:
+            start_time = datetime.strptime(request.GET['start'], "%Y-%m-%d %H:%M:%S %z")
+            end_time = datetime.strptime(request.GET['end'], "%Y-%m-%d %H:%M:%S %z")
+            qs = Block.objects.filter(owner=request.user.paugprofile, start__lt=end_time, end__gt=start_time).exclude(start__isnull=True)
+
+        elif 'to' in request.GET:
+            # if request.GET['to'] == 'estimate':
+            #     qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True, duration__isnull=True)
+            if request.GET['to'] == 'schedule':
+                # qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True, duration__isnull=False)
+                qs = Block.objects.filter(owner=request.user.paugprofile, start__isnull=True)
+            else:
+                raise ValueError("Improper GET arguments.")
+
+        else:
+            raise ValueError("Improper GET arguments.")
+
+        data = serialize("json", qs, fields=('name', 'start', 'end', 'category', 'autocomplete', 'completed', 'duration'))
         return HttpResponse(data, content_type="application/json")
+
     # return the right values filtered correctly.
     # if it's a post:
     if request.method == "POST":
@@ -89,7 +103,6 @@ def block(request):
             dict(json.loads(request.body)),
             Category.objects.filter(owner=request.user.paugprofile)
         )
-        print(event_dict)
         b = Block(owner=request.user.paugprofile, **event_dict)
         b.save()
         data = serialize("json", [b], fields=('name', 'start', 'end', 'category', 'autocomplete', 'completed'))
