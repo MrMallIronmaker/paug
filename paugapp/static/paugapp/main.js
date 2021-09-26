@@ -13,6 +13,14 @@ function getCategory(id) {
     return entryCategories.filter(x => x.id === id)[0];
 }
 
+function safeCategoryId(category) {
+    if (category) {
+        return category.id;
+    } else {
+        return null;
+    }
+}
+
 var entryTypes = ["Event", "Task", "Record"];
 
 var sumDurations = function(arr) {
@@ -301,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
             "pk": event.id,
             "fields": {
                 "name": event.title,
-                "category": event.extendedProps.category.id,
+                "category": safeCategoryId(event.extendedProps.category),
                 "completed": event.extendedProps.completed,
                 "entry_type": event.extendedProps.entryType
             }
@@ -526,7 +534,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     "pk": event.id,
                     "fields": {
                         "name": event.title,
-                        "category": event.extendedProps.category.id,
+                        "category": safeCategoryId(event.extendedProps.category),
                         "completed": event.extendedProps.completed,
                         "entry_type": event.extendedProps.entryType,
                         // TODO: auto-calculate duration when unscheduled.
