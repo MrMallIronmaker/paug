@@ -657,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         moment(ev.start) >= elementDate &&
                             moment(ev.end) <= elementDateEnd &&
                             ev.extendedProps.category &&
-                            ev.extendedProps.category.name === "Work"
+                            ["Work", "TA 347", "Thesis"].includes(ev.extendedProps.category.name)
                 ));
 
                 var workEventHours = sumDurations(
