@@ -212,6 +212,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }), {})
             },
+            repeat: {
+                name: "Repeat",
+                callback: function(key, opt, rootMenu, originalEvent) {
+                    let event = eventFromOpt(opt);
+                    let newExtendedProps = {};
+                    Object.assign(newExtendedProps, event.extendedProps);
+                    let repeatedEventSpec = {
+                        title: event.title,
+                        start: moment(event.start).add(1, "week").toISOString(),
+                        end: moment(event.end).add(1, "week").toISOString(),
+                        extendedProps: newExtendedProps
+                    }
+                    repeatedEventSpec["color"] = computeColor(repeatedEventSpec);
+                    calendar.addEvent(repeatedEventSpec);
+                }
+            },
             split: {
                 name: "Split",
                 callback: function(key, opt, rootMenu, originalEvent) {
