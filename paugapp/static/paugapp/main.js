@@ -266,14 +266,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     event.setEnd(childSplitPoint);
 
                     // create new event.
-                    var lateChildEvent = calendar.addEvent({
+                    let lateChildEventSpec = {
                         title: event.title,
                         start: childSplitPoint,
                         end: lateChildEnd,
                         extendedProps: newExtendedProps
-                    });
-
-                    lateChildEvent.setProp("color", computeColor(lateChildEvent));
+                    };
+                    lateChildEventSpec.color = computeColor(lateChildEventSpec);
+                    calendar.addEvent(lateChildEventSpec);
                 }
             },
             postpone: {
