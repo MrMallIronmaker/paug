@@ -53,6 +53,72 @@ var showHideCallback = function(id) {
     };
 }
 
+const calculateRates = function(x) {
+    // first, get the values and log them.
+    console.log("foobar");
+
+    let formValues = {};
+    $("#rate-selector").serializeArray().forEach(val => formValues[val.name] = val.value);
+
+    console.log(formValues);
+
+    // then, submit a request to the server and wait...
+    $.getJSON("/block/", {
+        start: moment(formValues["rate-start"]).format("YYYY-MM-DD HH:mm:ss ZZ"),
+        end: moment(formValues["rate-end"]).add(1, "day").format("YYYY-MM-DD HH:mm:ss ZZ")
+    }, function(data, textStatus, jqXHR) {
+        console.log("foobar2");
+        console.log(data);
+
+        // count number of weekdays in between (hacky)
+        let start = moment(formValues["rate-start"]); //Pick any format
+        let end = moment(formValues["rate-end"]).add(1, "day"); //right now (or define an end date yourself)
+        let weekdayCounter = 0;
+
+        while (start < end) {
+            if (start.format('ddd') !== 'Sat' && start.format('ddd') !== 'Sun' && start.format("YYYY-MM-DD") !== "2022-03-29"){
+                weekdayCounter++; //add 1 to your counter if its not a weekend day
+            }
+            start = moment(start, 'YYYY-MM-DD').add(1, 'days'); //increment by one day
+        }
+        console.log(weekdayCounter);
+
+        // count durations per category
+        const hoursByCat = data.reduce((acc, val) => {
+            // calculate the event's duration in hours.
+            const hours = moment(val.fields.end).diff(moment(val.fields.start), "milliseconds") / (1000 * 60 * 60);
+            const cat = val.fields.category;
+            if (cat in acc) {
+                acc[cat] += hours;
+            } else {
+                acc[cat] = hours;
+            }
+            return acc;
+        }, {});
+
+        console.log(hoursByCat);
+
+        // clear out old results,
+        const ratesInfo = $("#rates-info");
+        ratesInfo.empty();
+        for (const categoryId in hoursByCat) {
+            const hours = hoursByCat[categoryId];
+            const catInfo = getCategory(+categoryId);
+            const dot = "<span style='height: 25px;width: 25px;background-color:" +
+                catInfo.color + ";border-radius: 50%;" +
+                "display: inline-block;/>";
+            ratesInfo.append("<p>" + catInfo.name + ": " + (hours/weekdayCounter) +  " </p>");
+            console.log("<p>" + catInfo.name + ": " + (hours/weekdayCounter) +  " </p>");
+        }
+        ratesInfo.append("Foobar McGee");
+
+
+        // put in news ones.
+    });
+
+    // when you receive it, do this..
+}
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -128,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $("#inbox-toggle").click(showHideCallback('inbox-iframe'));
     $("#schedule-toggle").click(showHideCallback('external-events'));
+    $("#rate-toggle").click(showHideCallback('rates'));
 
     new Draggable(containerEl, {
         itemSelector: '.fc-event',

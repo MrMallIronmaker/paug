@@ -32,6 +32,29 @@
         </div>
     </div>
 
+    <div>
+        <p>
+            <button id="rate-toggle">Show</button>
+            <strong>Rates</strong>
+        </p>
+        <div id='rates' style="display:none;">
+            <div>
+                <form id='rate-selector' action="javascript:calculateRates()">
+                <label for="start">Start date:</label>
+                <input type="date" id="start" name="rate-start"
+                       value="2022-04-06">
+                <br/>
+                <label for="end">End date:</label>
+                <input type="date" id="end" name="rate-end"
+                       value="2022-04-06">
+                <input type="submit">
+                </form>
+            </div>
+            <div id="rates-info">
+            </div>
+        </div>
+    </div>
+
 
 
 
