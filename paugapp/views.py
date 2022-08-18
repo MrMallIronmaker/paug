@@ -140,7 +140,7 @@ def block(request):
 @login_required
 def category(request):
     if request.method == "GET":
-        qs = Category.objects.filter(owner=request.user.paugprofile)
+        qs = Category.objects.filter(owner=request.user.paugprofile, active=True)
         data = serialize("json", qs, fields=('name', 'html_color'))
         return HttpResponse(data, content_type="application/json")
     return HttpResponseNotAllowed(['GET'])

@@ -14,6 +14,7 @@ class Category(models.Model):
     name = models.CharField(max_length=200)
     owner = models.ForeignKey(PaugProfile, on_delete=models.CASCADE)
     html_color = models.CharField(max_length=7)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
