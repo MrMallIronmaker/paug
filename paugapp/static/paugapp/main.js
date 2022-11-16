@@ -739,8 +739,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 var workEntries = events.filter(ev => (
                         moment(ev.start) >= elementDate &&
                             moment(ev.end) <= elementDateEnd &&
-                            ev.extendedProps.category &&
-                            ["Work", "TA 347", "Thesis", "Apps", "VRID2", "Papers"].includes(ev.extendedProps.category.name)
+                            ev.extendedProps.category && [
+                                "Work", "TA 347", "Thesis", "Apps", "VRID2", "Papers",
+                                "Local Places", "Local Ideas", "Skhole", "Work Etc"
+                            ].includes(ev.extendedProps.category.name)
                 ));
 
                 var workEventHours = sumDurations(
